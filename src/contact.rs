@@ -56,6 +56,7 @@ impl StudyContacts {
     }
 
     /// Get contacts with institutional emails
+    #[allow(dead_code)]
     pub fn institutional_emails(&self) -> Vec<&ExtractedContact> {
         self.contacts
             .iter()
@@ -64,6 +65,7 @@ impl StudyContacts {
     }
 
     /// Get all unique emails
+    #[allow(dead_code)]
     pub fn unique_emails(&self) -> HashSet<String> {
         self.contacts.iter().map(|c| c.email.clone()).collect()
     }
@@ -214,6 +216,7 @@ fn is_likely_individual_email(email: &str) -> bool {
 }
 
 /// Export contacts to CSV format
+#[allow(dead_code)]
 pub fn export_to_csv(studies: &[StudyContacts]) -> Result<String, Box<dyn std::error::Error>> {
     let mut csv = String::from("NCT ID,Study Title,Name,Role,Email,Source,Affiliation,Phone\n");
     

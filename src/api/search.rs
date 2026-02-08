@@ -43,6 +43,7 @@ impl QueryBuilder {
     }
 
     /// Search by study title
+    #[allow(dead_code)]
     pub fn title(mut self, title: &str) -> Self {
         self.params.insert("query.titles".to_string(), title.to_string());
         self
@@ -55,6 +56,7 @@ impl QueryBuilder {
     }
 
     /// Search by principal investigator name
+    #[allow(dead_code)]
     pub fn investigator(mut self, name: &str) -> Self {
         self.params.insert("query.ov".to_string(), name.to_string());
         self
@@ -139,6 +141,7 @@ impl QueryBuilder {
     }
 
     /// Set the page token for pagination
+    #[allow(dead_code)]
     pub fn page_token(mut self, token: &str) -> Self {
         self.params.insert("pageToken".to_string(), token.to_string());
         self
@@ -146,12 +149,14 @@ impl QueryBuilder {
 
     /// Set fields to return in the response
     /// Example: "NCTId,BriefTitle,Condition"
+    #[allow(dead_code)]
     pub fn fields(mut self, fields: &str) -> Self {
         self.params.insert("fields".to_string(), fields.to_string());
         self
     }
 
     /// Advanced query with custom parameters
+    #[allow(dead_code)]
     pub fn custom_param(mut self, key: &str, value: &str) -> Self {
         self.params.insert(key.to_string(), value.to_string());
         self
@@ -163,6 +168,7 @@ impl QueryBuilder {
     }
 
     /// Build query string for URL
+    #[allow(dead_code)]
     pub fn to_query_string(&self) -> String {
         self.params
             .iter()
@@ -205,6 +211,7 @@ impl SearchTemplates {
     }
 
     /// Search for interventional drug trials
+    #[allow(dead_code)]
     pub fn drug_trials(drug_name: &str) -> QueryBuilder {
         QueryBuilder::new()
             .intervention(drug_name)
@@ -213,6 +220,7 @@ impl SearchTemplates {
     }
 
     /// Get studies with contact information
+    #[allow(dead_code)]
     pub fn with_contacts() -> QueryBuilder {
         QueryBuilder::new()
             .status("RECRUITING")

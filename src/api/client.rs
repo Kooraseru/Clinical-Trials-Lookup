@@ -78,6 +78,7 @@ impl ClinicalTrialsClient {
     }
 
     /// Get all studies matching query with pagination
+    #[allow(dead_code)]
     pub fn search_all_studies(&self, params: &HashMap<String, String>) -> Result<Vec<Study>> {
         let mut all_studies = Vec::new();
         let mut current_params = params.clone();
@@ -99,6 +100,7 @@ impl ClinicalTrialsClient {
     }
 
     /// Get field metadata
+    #[allow(dead_code)]
     pub fn get_metadata(&self) -> Result<Value> {
         let url = format!("{}/studies/metadata", self.base_url);
         let response = self.client.get(&url).send()
@@ -109,6 +111,7 @@ impl ClinicalTrialsClient {
     }
 
     /// Get searchable areas
+    #[allow(dead_code)]
     pub fn get_search_areas(&self) -> Result<Value> {
         let url = format!("{}/studies/search-areas", self.base_url);
         let response = self.client.get(&url).send()
