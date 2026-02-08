@@ -2,6 +2,7 @@
 pub mod csv_export;
 pub mod google_sheets;
 pub mod redcap;
+pub mod redcap_api;
 
 use crate::contact::StudyContacts;
 use anyhow::Result;

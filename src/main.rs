@@ -11,6 +11,7 @@ use std::path::PathBuf;
 use api::{ClinicalTrialsClient, QueryBuilder, SearchTemplates};
 use contact::{extract_contacts, print_contacts};
 use export::{ExportFormat, ExportOptions};
+use export::redcap_api::{RedcapConfig, upload_to_redcap, extract_csv_from_redcap_export, UploadResult};
 
 #[derive(Parser)]
 #[command(name = "Clinical Trials Lookup")]
@@ -117,6 +118,30 @@ enum Commands {
         /// Maximum number of studies to retrieve
         #[arg(short, long, default_value_t = 10)]
         max: usize,
+        
+        /// Export format
+        #[arg(short, long, value_enum)]
+        format: Option<ExportFormatArg>,
+        
+        /// Output file path
+        #[arg(long)]
+        output: Option<PathBuf>,
+        
+        /// Only export individual emails
+        #[arg(long)]
+        individual_only: bool,
+        
+        /// REDCap API URL (e.g., https://redcap.vumc.org/api/)
+        #[arg(long)]
+        redcap_url: Option<String>,
+        
+        /// REDCap API token for direct upload
+        #[arg(long)]
+        redcap_token: Option<String>,
+        
+        /// Only search for studies in the United States
+        #[arg(long)]
+        us_only: bool,
     },
     
     /// List all available search parameters
@@ -141,6 +166,18 @@ enum Commands {
         /// Only export individual emails (exclude institutional)
         #[arg(long)]
         individual_only: bool,
+        
+        /// REDCap API URL (e.g., https://redcap.vumc.org/api/)
+        #[arg(long)]
+        redcap_url: Option<String>,
+        
+        /// REDCap API token for direct upload
+        #[arg(long)]
+        redcap_token: Option<String>,
+        
+        /// Only search for studies in the United States
+        #[arg(long)]
+        us_only: bool,
     },
     
     /// Generate a template for batch processing
@@ -247,7 +284,8 @@ fn main() -> Result<()> {
         }
         
         Commands::Custom { query, condition, intervention, location, status, study_type,
-                          start_date_from, start_date_to, completion_date_from, completion_date_to, max } => {
+                          start_date_from, start_date_to, completion_date_from, completion_date_to, max,
+                          format, output, individual_only, redcap_url, redcap_token, us_only } => {
             println!("{}", "Performing custom search...".bright_green().bold());
             
             let mut builder = QueryBuilder::new();
@@ -263,6 +301,10 @@ fn main() -> Result<()> {
             }
             if let Some(l) = location {
                 builder = builder.location(&l);
+            } else if us_only {
+                // If no location specified but us_only is true, filter for United States
+                builder = builder.location("United States");
+                println!("{}", "🇺🇸 Filtering for United States studies only".bright_blue());
             }
             if let Some(s) = status {
                 builder = builder.status(&s);
@@ -286,7 +328,79 @@ fn main() -> Result<()> {
                 _ => {}
             }
             
-            search_and_display(&client, builder, max)?;
+            // If format/output specified, do export instead of display
+            if format.is_some() || output.is_some() {
+                let query = builder.page_size(max.min(1000));
+                let params = query.build();
+                
+                println!("{}", "Fetching studies...".cyan());
+                let response = client.search_studies(&params)?;
+                
+                println!("{}", format!("Found {} studies", response.studies.len()).green());
+                
+                let mut all_contacts = Vec::new();
+                for study in &response.studies {
+                    let contacts = extract_contacts(study);
+                    if !contacts.contacts.is_empty() {
+                        all_contacts.push(contacts);
+                    }
+                }
+                
+                println!("{}", format!("Studies with contacts: {}", all_contacts.len()).green());
+                
+                let export_format = format.unwrap_or(ExportFormatArg::Csv);
+                let export_options = ExportOptions {
+                    format: export_format.clone().into(),
+                    output_path: output.as_ref().map(|p| p.to_string_lossy().to_string()),
+                    include_headers: true,
+                    individual_emails_only: individual_only,
+                };
+                
+                let export_data = export::export_contacts(&all_contacts, &export_options)?;
+                
+                // Handle REDCap API upload
+                if let (Some(url), Some(token)) = (redcap_url, redcap_token) {
+                    if matches!(export_format, ExportFormatArg::Redcap) {
+                        let config = RedcapConfig {
+                            api_url: url,
+                            api_token: token,
+                        };
+                        
+                        let csv_data = extract_csv_from_redcap_export(&export_data);
+                        match upload_to_redcap(&csv_data, &config) {
+                            Ok(result) => {
+                                if result.success {
+                                    println!("\n{}", "✓ UPLOAD SUCCESSFUL!".bright_green().bold());
+                                    println!("Records imported: {}", result.records_imported.to_string().bright_green());
+                                    println!("Record IDs: {:?}", result.ids);
+                                    println!("HTTP Status: {}", result.response_code);
+                                } else {
+                                    println!("\n{}", "✗ UPLOAD FAILED".red().bold());
+                                    println!("HTTP Status: {}", result.response_code);
+                                    println!("Message: {}", result.message);
+                                    println!("{}", "Saving to file instead...".yellow());
+                                }
+                            }
+                            Err(e) => {
+                                println!("\n{}", "✗ UPLOAD ERROR".red().bold());
+                                println!("Error: {}", e);
+                                println!("{}", "Saving to file instead...".yellow());
+                            }
+                        }
+                    } else {
+                        println!("{}", "Warning: REDCap API parameters provided but format is not 'redcap'".yellow());
+                    }
+                }
+                
+                if let Some(path) = output {
+                    std::fs::write(&path, &export_data)?;
+                    println!("\n{}", format!("Export saved to: {}", path.display()).bright_green().bold());
+                } else {
+                    println!("\n{}", export_data);
+                }
+            } else {
+                search_and_display(&client, builder, max)?;
+            }
         }
         
         Commands::Parameters => {
@@ -297,7 +411,7 @@ fn main() -> Result<()> {
             show_api_info(&client)?;
         }
         
-        Commands::Batch { config_file, format, output, individual_only } => {
+        Commands::Batch { config_file, format, output, individual_only, redcap_url, redcap_token, us_only } => {
             println!("{}", "Running batch search from configuration file...".bright_green().bold());
             
             let config = if config_file.extension().and_then(|s| s.to_str()) == Some("json") {
@@ -306,7 +420,7 @@ fn main() -> Result<()> {
                 batch::load_from_csv(&config_file)?
             };
             
-            run_batch_searches(&client, config, format.into(), output, individual_only)?;
+            run_batch_searches(&client, config, format.clone().into(), output.clone(), individual_only, redcap_url, redcap_token, us_only)?;
         }
         
         Commands::Template { format, output } => {
@@ -344,8 +458,15 @@ fn run_batch_searches(
     format: ExportFormat,
     output: Option<PathBuf>,
     individual_only: bool,
+    redcap_url: Option<String>,
+    redcap_token: Option<String>,
+    us_only: bool,
 ) -> Result<()> {
     let mut all_contacts = Vec::new();
+    
+    if us_only {
+        println!("{}", "🇺🇸 US-only filter enabled for all searches".bright_blue());
+    }
     
     for (idx, params) in config.searches.iter().enumerate() {
         let default_name = format!("Search {}", idx + 1);
@@ -362,6 +483,9 @@ fn run_batch_searches(
         }
         if let Some(l) = &params.location {
             query = query.location(l);
+        } else if us_only {
+            // Apply US filter if no location specified
+            query = query.location("United States");
         }
         if let Some(s) = &params.sponsor {
             query = query.organization(s);
@@ -414,13 +538,47 @@ fn run_batch_searches(
     
     // Export
     let export_options = ExportOptions {
-        format,
+        format: format.clone(),
         output_path: output.as_ref().map(|p| p.to_string_lossy().to_string()),
         include_headers: true,
         individual_emails_only: individual_only,
     };
     
     let export_data = export::export_contacts(&all_contacts, &export_options)?;
+    
+    // Handle REDCap API upload
+    if let (Some(url), Some(token)) = (redcap_url, redcap_token) {
+        if matches!(format, ExportFormat::Redcap) {
+            let config = RedcapConfig {
+                api_url: url,
+                api_token: token,
+            };
+            
+            let csv_data = extract_csv_from_redcap_export(&export_data);
+            match upload_to_redcap(&csv_data, &config) {
+                Ok(result) => {
+                    if result.success {
+                        println!("\n{}", "✓ UPLOAD SUCCESSFUL!".bright_green().bold());
+                        println!("Records imported: {}", result.records_imported.to_string().bright_green());
+                        println!("Record IDs: {:?}", result.ids);
+                        println!("HTTP Status: {}", result.response_code);
+                    } else {
+                        println!("\n{}", "✗ UPLOAD FAILED".red().bold());
+                        println!("HTTP Status: {}", result.response_code);
+                        println!("Message: {}", result.message);
+                        println!("{}", "Saving to file instead...".yellow());
+                    }
+                }
+                Err(e) => {
+                    println!("\n{}", "✗ UPLOAD ERROR".red().bold());
+                    println!("Error: {}", e);
+                    println!("{}", "Saving to file instead...".yellow());
+                }
+            }
+        } else {
+            println!("{}", "Warning: REDCap API parameters provided but format is not 'redcap'".yellow());
+        }
+    }
     
     if let Some(path) = output {
         std::fs::write(&path, &export_data)?;

@@ -7,9 +7,12 @@ A Rust application for searching ClinicalTrials.gov and extracting contact infor
 - **Multiple Search Methods**: Condition, intervention, location, sponsor, custom queries
 - **Batch Processing**: Run multiple searches from CSV/JSON configuration files  
 - **Export Formats**: CSV, Google Sheets, REDCap, JSON
+- **REDCap API Integration**: Direct upload to REDCap projects with detailed logging
 - **Contact Extraction**: Automatically extracts names, roles, emails, affiliations, phones
 - **Email Prioritization**: Distinguishes individual vs institutional emails
 - **Date Range Filtering**: Filter studies by start date and completion date (YYYY-MM-DD)
+- **US-Only Filter**: `--us-only` flag to search only United States studies
+- **Rate Limit Detection**: Automatic detection and reporting of API rate limits
 - **Parameters Command**: List all available search parameters and filters
 
 ## Quick Start
@@ -21,8 +24,11 @@ cargo build --release
 # Single search
 cargo run -- condition "diabetes" --max 20
 
-# Batch search with REDCap export
-cargo run -- batch searches.csv --format redcap --output contacts.csv
+# Batch search with REDCap direct upload
+cargo run -- batch searches.csv \
+  --format redcap \
+  --redcap-url "https://redcap.vumc.org/api/" \
+  --redcap-token "YOUR_API_TOKEN"
 ```
 
 ## Documentation
@@ -61,9 +67,17 @@ cargo run -- custom --condition "diabetes" \
   --start-date-from "2024-01-01" \
   --start-date-to "2025-12-31" \
   --status "RECRUITING" --max 50
-start_date_from,start_date_to,max_results
-Recent Diabetes,diabetes,California,RECRUITING,2024-01-01,2025-12-31,100
-Cancer Trials,cancer,Boston,RECRUITING,2023-01-01,
+
+# Direct upload to REDCap
+cargo run -- custom --condition "diabetes" \
+  --start-date-from "2016-02-08" \
+  --start-date-to "2026-02-08" \
+  --max 2000 \
+  --us-only \
+  --format redcap \
+  --individual-only \
+  --redcap-url "https://redcap.vumc.org/api/" \
+  --redcap-token "YOUR_API_TOKEN"
 ```
 
 ## Batch Processing Example

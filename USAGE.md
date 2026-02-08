@@ -112,13 +112,11 @@ cargo run -- custom \
   --intervention "metformin" \
   --condition "type 2 diabetes"
 
-# With date range filtering
-cargo run -- custom \
-  --condition "diabetes" \
+# Search with date ranges
+cargo run -- custom --condition "diabetes" \
   --start-date-from "2024-01-01" \
   --start-date-to "2025-12-31" \
-  --status "RECRUITING" \
-  --max 50
+  --status "RECRUITING" --max 50
 
 # Filter by completion date
 cargo run -- custom \
@@ -126,6 +124,27 @@ cargo run -- custom \
   --completion-date-from "2020-01-01" \
   --completion-date-to "2023-12-31" \
   --status "COMPLETED"
+
+# US studies only (2000 results from 2016 to today)
+cargo run -- custom \
+  --start-date-from "2016-02-08" \
+  --start-date-to "2026-02-08" \
+  --max 2000 \
+  --us-only \
+  --format redcap \
+  --individual-only \
+  --output contacts.csv
+
+# US studies with direct REDCap upload
+cargo run -- custom \
+  --start-date-from "2016-02-08" \
+  --start-date-to "2026-02-08" \
+  --max 2000 \
+  --us-only \
+  --format redcap \
+  --individual-only \
+  --redcap-url "https://redcap.vumc.org/api/" \
+  --redcap-token "YOUR_API_TOKEN"
 ```
 
 #### List All Available Parameters
@@ -264,10 +283,46 @@ Includes:
 - Complete data dictionary for REDCap project setup
 - Survey tracking fields (email_sent, email_opened, survey_completed)
 - Import instructions and API upload command
+- **Direct API Upload**: Upload data directly to your REDCap instance
 
 ```bash
 cargo run -- batch searches.csv --format redcap --output redcap_import.csv
 ```
+
+**Direct Upload to REDCap API:**
+
+```bash
+# Upload directly to REDCap (no file needed)
+cargo run -- batch searches.csv \
+  --format redcap \
+  --redcap-url "https://redcap.vumc.org/api/" \
+  --redcap-token "YOUR_API_TOKEN"
+
+# Or with custom search
+cargo run -- custom \
+  --condition "diabetes" \
+  --start-date-from "2016-02-08" \
+  --start-date-to "2026-02-08" \
+  --max 2000 \
+  --us-only \
+  --format redcap \
+  --individual-only \
+  --redcap-url "https://redcap.vumc.org/api/" \
+  --redcap-token "YOUR_API_TOKEN"
+```
+
+**Upload Output:**
+The tool will display detailed information about the upload:
+- ✓ UPLOAD SUCCESSFUL! - Records imported count
+- Record IDs returned by REDCap
+- HTTP status code
+- Any error messages if upload fails
+
+**Getting Your REDCap API Token:**
+1. Log into your REDCap project
+2. Go to "API" in the left menu
+3. Click "Generate API Token" if you don't have one
+4. Copy the token (keep it secure!)
 
 **REDCap Fields Included:**
 - Study and contact information
@@ -304,11 +359,13 @@ cargo run -- template csv --output multi_search.csv
 # - Cancer trials in Boston
 # - COVID-19 vaccine studies
 
-# Run batch search with REDCap export
+# Run batch search with REDCap export and direct upload
 cargo run -- batch multi_search.csv \
   --format redcap \
   --output survey_contacts.csv \
-  --individual-only
+  --individual-only \
+  --redcap-url "https://redcap.vumc.org/api/" \
+  --redcap-token "YOUR_API_TOKEN"
 ```
 
 #### Workflow 2: Find Contacts for Specific Date Range
@@ -368,6 +425,11 @@ cargo run -- parameters
 - `--start-date-to` - Study start date to (YYYY-MM-DD)
 - `--completion-date-from` - Primary completion date from (YYYY-MM-DD)
 - `--completion-date-to` - Primary completion date to (YYYY-MM-DD)
+
+### Location Filters
+- `--us-only` - Only search for studies in the United States
+- Works with both `custom` and `batch` commands
+- Automatically adds "United States" to location filter
 
 **In batch CSV/JSON:**
 - `start_date_from`, `start_date_to`
@@ -457,6 +519,11 @@ cargo run -- batch cancer_centers.csv --output cancer_contacts.csv
 
 ```bash
 cargo run -- batch recent_drugs.json
+
+# Or upload directly to REDCap
+cargo run -- batch recent_drugs.json \
+  --redcap-url "https://redcap.vumc.org/api/" \
+  --redcap-token "YOUR_API_TOKEN"
 ```
 
 ### Example 3: Multi-Condition Survey Distribution
@@ -478,10 +545,18 @@ cargo run -- batch conditions.csv --format google-sheets --output gsheets.txt
 3. **Use Date Ranges**: Filter by start/completion dates for relevant studies
 4. **Individual Emails**: Use `--individual-only` for better response rates
 5. **Export to REDCap**: Use REDCap format for survey tracking and follow-up
-6. **Verify Data**: Check exported contacts before sending surveys
-7. **Respect Privacy**: Use contact information only for legitimate research
+6. **Direct API Upload**: Use `--redcap-url` and `--redcap-token` for seamless integration
+7. **Secure Your Token**: Never commit API tokens to version control
+8. **Verify Data**: Check exported contacts before sending surveys
+9. **Respect Privacy**: Use contact information only for legitimate research
 
 ## Troubleshooting
+
+### Rate Limiting
+- The ClinicalTrials.gov API may rate limit excessive requests
+- If you see "⚠️  RATE LIMIT EXCEEDED (429)", wait a few minutes
+- The tool automatically detects and reports rate limiting
+- Consider reducing `--max` value or spacing out batch searches
 
 ### No Results
 - Try broader search terms

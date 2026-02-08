@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use reqwest::blocking::Client;
 use serde_json::Value;
 use std::collections::HashMap;
+use colored::Colorize;
 
 use super::models::{StudiesResponse, Study};
 
@@ -48,8 +49,18 @@ impl ClinicalTrialsClient {
             .send()
             .context("Failed to send search request")?;
 
-        if !response.status().is_success() {
-            let status = response.status();
+        let status = response.status();
+        
+        // Check for rate limiting
+        if status.as_u16() == 429 {
+            let error_text = response.text().unwrap_or_default();
+            eprintln!("\n{}", "⚠️  RATE LIMIT EXCEEDED".bright_yellow().bold());
+            eprintln!("The ClinicalTrials.gov API has rate limited your requests.");
+            eprintln!("Please wait a few minutes before trying again.");
+            anyhow::bail!("API rate limit exceeded (429): {}", error_text);
+        }
+        
+        if !status.is_success() {
             let error_text = response.text().unwrap_or_default();
             anyhow::bail!("API request failed with status {}: {}", status, error_text);
         }
@@ -67,8 +78,18 @@ impl ClinicalTrialsClient {
             .send()
             .context(format!("Failed to get study {}", nct_id))?;
 
-        if !response.status().is_success() {
-            let status = response.status();
+        let status = response.status();
+        
+        // Check for rate limiting
+        if status.as_u16() == 429 {
+            let error_text = response.text().unwrap_or_default();
+            eprintln!("\n{}", "⚠️  RATE LIMIT EXCEEDED".bright_yellow().bold());
+            eprintln!("The ClinicalTrials.gov API has rate limited your requests.");
+            eprintln!("Please wait a few minutes before trying again.");
+            anyhow::bail!("API rate limit exceeded (429): {}", error_text);
+        }
+        
+        if !status.is_success() {
             let error_text = response.text().unwrap_or_default();
             anyhow::bail!("API request failed with status {}: {}", status, error_text);
         }
