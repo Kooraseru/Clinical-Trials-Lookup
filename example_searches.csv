@@ -1,0 +1,6 @@
+name,condition,intervention,location,sponsor,status,study_type,start_date_from,start_date_to,completion_date_from,completion_date_to,min_results,max_results
+Diabetes CA Studies,diabetes,,,Stanford University,RECRUITING,,2020-01-01,2025-12-31,,,10,100
+Cancer Trials Boston,cancer,,Boston,,,INTERVENTIONAL,2023-01-01,,,,20,50
+COVID Vaccine Studies,COVID-19,vaccine,,,RECRUITING,,2020-01-01,2024-12-31,,,5,30
+Heart Disease Trials,heart disease,,,,RECRUITING,INTERVENTIONAL,2022-01-01,2025-12-31,,,15,75
+Alzheimer Research,Alzheimer's disease,,,,RECRUITING,OBSERVATIONAL,2021-01-01,,,,10,50

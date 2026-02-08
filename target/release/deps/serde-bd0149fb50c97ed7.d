@@ -1,0 +1,14 @@
+/mnt/c/Users/Kooraseru/Documents/GitHub/Clinical-Trials-Lookup/target/release/deps/serde-bd0149fb50c97ed7.d: /home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /mnt/c/Users/Kooraseru/Documents/GitHub/Clinical-Trials-Lookup/target/release/build/serde-41e97f31a0c20611/out/private.rs
+
+/mnt/c/Users/Kooraseru/Documents/GitHub/Clinical-Trials-Lookup/target/release/deps/libserde-bd0149fb50c97ed7.rlib: /home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /mnt/c/Users/Kooraseru/Documents/GitHub/Clinical-Trials-Lookup/target/release/build/serde-41e97f31a0c20611/out/private.rs
+
+/mnt/c/Users/Kooraseru/Documents/GitHub/Clinical-Trials-Lookup/target/release/deps/libserde-bd0149fb50c97ed7.rmeta: /home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /mnt/c/Users/Kooraseru/Documents/GitHub/Clinical-Trials-Lookup/target/release/build/serde-41e97f31a0c20611/out/private.rs
+
+/home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/home/kooraseru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/mnt/c/Users/Kooraseru/Documents/GitHub/Clinical-Trials-Lookup/target/release/build/serde-41e97f31a0c20611/out/private.rs:
+
+# env-dep:OUT_DIR=/mnt/c/Users/Kooraseru/Documents/GitHub/Clinical-Trials-Lookup/target/release/build/serde-41e97f31a0c20611/out
